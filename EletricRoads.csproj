@@ -46,9 +46,10 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Compile Include="EletricRoadsMod.cs" />
+    <Compile Include="Overrides\EletricRoads81.cs" />
     <Compile Include="Overrides\EletricRoads.cs" />
     <Compile Include="Overrides\Redirector.cs" />
-    <Compile Include="Utils\BasicIUserMod.cs" />
+    <Compile Include="Utils\LoadingExtensionElectric.cs" />
     <Compile Include="Utils\KlyteUtils.cs" />
     <Compile Include="Utils\ReflectionUtils.cs" />
   </ItemGroup>
@@ -111,31 +112,15 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
     <Reference Include="ColossalManaged">
       <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
     </Reference>
     <Reference Include="ICities">
       <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\..\..\Program Files (x86)\Steam\SteamApps\common\Cities_Skylines\Cities_Data\Managed\Mono.Posix.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Networking">
-      <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\..\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup>
@@ -144,7 +129,7 @@ xcopy /Y "$(TargetPath)" "%APPDATA%\..\Local\Colossal Order\Cities_Skylines\Addo
 xcopy /Y "$(TargetPath)" "$(ProjectDir)\_requiredDLLs\"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>del /q "%APPDATA%\..\Local\Colossal Order\Cities_Skylines\Addons\Mods\KER\"
+    <PreBuildEvent>rem del /q "%25APPDATA%25\..\Local\Colossal Order\Cities_Skylines\Addons\Mods\KER\"
 </PreBuildEvent>
   </PropertyGroup>
 </Project>

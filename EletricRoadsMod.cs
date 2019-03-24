@@ -9,35 +9,38 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-[assembly: AssemblyVersion("1.0.0.*")]
+[assembly: AssemblyVersion("1.1.0.0")]
 namespace Klyte.ElectricRoads
 {
-    public class ElectricRoadsMod : BasicIUserMod<ElectricRoadsMod>
+    public class ElectricRoadsMod : IUserMod
     {
-        public override string SimpleName => "Klyte's Electric Roads Mod";
+        public string SimpleName => "Klyte's Electric Roads Mod";
 
-        public override string Description => "This mod turns all roads electric conductive.";
+        public string Description => "This mod turns all roads electric conductive.";
 
-        public override void doErrorLog(string fmt, params object[] args)
+        public string Name => $"{SimpleName} {version}";
+
+
+        public static string minorVersion => majorVersion + "." + typeof(ElectricRoadsMod).Assembly.GetName().Version.Build;
+        public static string majorVersion => typeof(ElectricRoadsMod).Assembly.GetName().Version.Major + "." + typeof(ElectricRoadsMod).Assembly.GetName().Version.Minor;
+        public static string fullVersion => minorVersion + " r" + typeof(ElectricRoadsMod).Assembly.GetName().Version.Revision;
+        public static string version
         {
-            KlyteUtils.doErrorLog(fmt, args);
+            get {
+                if (typeof(ElectricRoadsMod).Assembly.GetName().Version.Minor == 0 && typeof(ElectricRoadsMod).Assembly.GetName().Version.Build == 0)
+                {
+                    return typeof(ElectricRoadsMod).Assembly.GetName().Version.Major.ToString();
+                }
+                if (typeof(ElectricRoadsMod).Assembly.GetName().Version.Build > 0)
+                {
+                    return minorVersion;
+                }
+                else
+                {
+                    return majorVersion;
+                }
+            }
         }
-
-        public override void doLog(string fmt, params object[] args)
-        {
-            KlyteUtils.doLog(fmt, args);
-        }
-
-        public override void LoadSettings()
-        {
-        }
-
-        public override void OnReleased()
-        {
-            base.OnReleased();
-        }
-
-
 
     }
 }
