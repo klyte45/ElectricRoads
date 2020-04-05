@@ -35,7 +35,42 @@ namespace Klyte.ElectricRoads
 
             CreateTitleBar();
 
-            KlyteMonoUtils.CreateScrollPanel(_mainPanel, out UIScrollablePanel scrollPanel, out _, _mainPanel.width - 25, _mainPanel.height - 105, new Vector3(5, 100));
+            KlyteMonoUtils.CreateUIElement(out UIButton exportAsDefault, _mainPanel.transform, "ExportAsDefault", new Vector4(10, 50, 180, 30));
+            KlyteMonoUtils.InitButtonFull(exportAsDefault, false, "ButtonMenu");
+            exportAsDefault.localeID = "K45_ER_EXPORT_DEFAULT_BTN";
+            exportAsDefault.minimumSize = new Vector2(180, 30);
+            KlyteMonoUtils.LimitWidthAndBox(exportAsDefault);
+            exportAsDefault.eventClicked += (x, y) => ClassesData.Instance.SaveAsDefault();
+
+            KlyteMonoUtils.CreateUIElement(out UIButton importFromDefault, _mainPanel.transform, "ExportAsDefault", new Vector4(210, 50, 180, 30));
+            KlyteMonoUtils.InitButtonFull(importFromDefault, false, "ButtonMenu");
+            importFromDefault.localeID = "K45_ER_IMPORT_DEFAULT_BTN";
+            importFromDefault.minimumSize = new Vector2(180, 30);
+            KlyteMonoUtils.LimitWidthAndBox(importFromDefault, 180);
+            importFromDefault.eventClicked += (x, y) => ClassesData.Instance.LoadDefaults();
+
+            KlyteMonoUtils.CreateUIElement(out UIButton selectAll, _mainPanel.transform, "SelectAll", new Vector4(10, 90, 120, 30));
+            KlyteMonoUtils.InitButtonFull(selectAll, false, "ButtonMenu");
+            selectAll.localeID = "K45_ER_SELECT_ALL_BTN";
+            selectAll.minimumSize = new Vector2(120, 30);
+            KlyteMonoUtils.LimitWidthAndBox(selectAll, 120);
+            selectAll.eventClicked += (x, y) => ClassesData.Instance.SelectAll();
+
+            KlyteMonoUtils.CreateUIElement(out UIButton selectNone, _mainPanel.transform, "selectNone", new Vector4(140, 90, 120, 30));
+            KlyteMonoUtils.InitButtonFull(selectNone, false, "ButtonMenu");
+            selectNone.localeID = "K45_ER_SELECT_NONE_BTN";
+            selectNone.minimumSize = new Vector2(120, 30);
+            KlyteMonoUtils.LimitWidthAndBox(selectNone, 120);
+            selectNone.eventClicked += (x, y) => ClassesData.Instance.UnselectAll();
+
+            KlyteMonoUtils.CreateUIElement(out UIButton reset, _mainPanel.transform, "reset", new Vector4(270, 90, 120, 30));
+            KlyteMonoUtils.InitButtonFull(reset, false, "ButtonMenu");
+            reset.localeID = "K45_ER_RESET_BTN";
+            reset.minimumSize = new Vector2(120, 30);
+            KlyteMonoUtils.LimitWidthAndBox(reset, 120);
+            reset.eventClicked += (x, y) => ClassesData.Instance.SafeCleanAll(m_allClasses.Keys);
+
+            KlyteMonoUtils.CreateScrollPanel(_mainPanel, out UIScrollablePanel scrollPanel, out _, _mainPanel.width - 25, _mainPanel.height - 135, new Vector3(5, 130));
             scrollPanel.autoLayout = true;
             scrollPanel.autoLayoutDirection = LayoutDirection.Vertical;
             scrollPanel.autoLayoutPadding = new RectOffset(0, 0, 5, 5);
@@ -60,13 +95,23 @@ namespace Klyte.ElectricRoads
                 row.padding = new RectOffset(5, 5, 0, 0);
                 row.stringUserData = className;
 
-                UICheckBox uiCheckbox = UIHelperExtension.AddCheckbox(row, $"{clazz.Key.name}", ClassesData.Instance.GetConductibility(clazzKey), (y) => ClassesData.Instance.SetConductibility(clazzKey, y));
+                UICheckBox uiCheckbox = UIHelperExtension.AddCheckbox(row, $"{clazz.Key.name}", ClassesData.Instance.GetConductibility(clazzKey));
                 uiCheckbox.name = "ClassCheckbox";
                 uiCheckbox.height = 20f;
                 uiCheckbox.width = 335f;
                 uiCheckbox.label.processMarkup = true;
                 uiCheckbox.label.textScale = 0.8f;
+                uiCheckbox.objectUserData = clazzKey;
+                uiCheckbox.eventCheckChanged += SetItemClassValue;
                 KlyteMonoUtils.LimitWidthAndBox(uiCheckbox.label, 325);
+                ClassesData.Instance.eventOnValueChanged += (x, y) =>
+                {
+                    if (x == className && y is bool b)
+                    {
+                        SetNewValue(uiCheckbox, b);
+                    }
+                };
+                ClassesData.Instance.eventAllChanged += () => SetNewValue(uiCheckbox, ClassesData.Instance.GetConductibility(clazzKey));
 
                 KlyteMonoUtils.CreateUIElement(out UIButton help, row.transform, "?", new Vector4(0, 0, 20, 20));
                 help.text = "?";
@@ -104,6 +149,15 @@ namespace Klyte.ElectricRoads
             }
             Quicksort(scrollPanel.components, new Comparison<UIComponent>(CompareNames), false);
         }
+
+        private void SetNewValue(UICheckBox uiCheckbox, bool b)
+        {
+            uiCheckbox.eventCheckChanged -= SetItemClassValue;
+            uiCheckbox.isChecked = b;
+            uiCheckbox.eventCheckChanged += SetItemClassValue;
+        }
+
+        private void SetItemClassValue(UIComponent component, bool value) => ClassesData.Instance.SetConductibility((ItemClass)component.objectUserData, value);
         private static int CompareNames(UIComponent left, UIComponent right) => string.Compare(left.stringUserData, right.stringUserData, StringComparison.InvariantCulture);
         protected static void Quicksort(IList<UIComponent> elements, Comparison<UIComponent> comp, bool invert) => SortingUtils.Quicksort(elements, comp, invert);
         private void CreateTitleBar()

@@ -1,10 +1,36 @@
 ﻿using Klyte.Commons.Interfaces;
+using Klyte.Commons.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Klyte.ElectricRoads.Data
 {
 
     public class ClassesData : ExtensionInterfaceDictionaryStructValSimplImpl<ClassesData, string, bool>
     {
+        public override void LoadDefaults()
+        {
+            if (File.Exists(ElectricRoadsController.DEFAULT_CONFIG_FILE))
+            {
+                try
+                {
+                    if (Deserialize(typeof(ClassesData), File.ReadAllBytes(ElectricRoadsController.DEFAULT_CONFIG_FILE)) is ClassesData defaultData)
+                    {
+                        m_cachedDictDataSaved = defaultData.m_cachedDictDataSaved;
+                        eventAllChanged?.Invoke();
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogUtils.DoErrorLog($"EXCEPTION WHILE LOADING: {e.GetType()} - {e.Message}\n {e.StackTrace}");
+                }
+            }
+        }
+
+        public void SaveAsDefault() => File.WriteAllBytes(ElectricRoadsController.DEFAULT_CONFIG_FILE, Serialize());
+
         public bool GetConductibility(ItemClass clazz)
         {
             bool? val = SafeGet(clazz.name);
@@ -33,6 +59,36 @@ namespace Klyte.ElectricRoads.Data
                     && (m_class.m_layer == ItemClass.Layer.Default || m_class.m_layer == ItemClass.Layer.MetroTunnels));
         }
         public override string SaveId => "K45_ER_ClassesData";
+
+        public event Action eventAllChanged;
+
+        internal void SelectAll()
+        {
+            var keys = m_cachedDictDataSaved.Keys.ToList();
+            foreach (string item in keys)
+            {
+                m_cachedDictDataSaved[item] = true;
+            }
+            eventAllChanged?.Invoke();
+        }
+        internal void UnselectAll()
+        {
+            var keys = m_cachedDictDataSaved.Keys.ToList();
+            foreach (string item in keys)
+            {
+                m_cachedDictDataSaved[item] = false;
+            }
+            eventAllChanged?.Invoke();
+        }
+        internal void SafeCleanAll(IEnumerable<ItemClass> items)
+        {
+            foreach (ItemClass item in items)
+            {
+                m_cachedDictDataSaved[item.name] = GetDefaultValueFor(item);
+            }
+            eventAllChanged?.Invoke();
+
+        }
     }
 
 }
