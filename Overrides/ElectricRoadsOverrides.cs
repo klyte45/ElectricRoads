@@ -1,14 +1,11 @@
 ﻿using ColossalFramework;
-using ColossalFramework.Globalization;
-using ColossalFramework.Math;
 using ColossalFramework.Plugins;
-using ColossalFramework.UI;
 using Harmony;
 using ICities;
-using Klyte.ElectricRoads.Utils;
+using Klyte.Commons.Extensors;
+using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -17,9 +14,11 @@ using UnityEngine;
 namespace Klyte.ElectricRoads.Overrides
 {
 
-    public class ElectricRoadsOverrides : Redirector<ElectricRoadsOverrides>
+    public class ElectricRoadsOverrides : Redirector, IRedirectable
     {
-        internal static Dictionary<string, SavedBool> conductsElectricity = new Dictionary<string, SavedBool>();
+
+        public Redirector RedirectorInstance => this;
+        internal static Dictionary<string, bool> conductsElectricity = new Dictionary<string, bool>();
 
         private delegate Color GetColorNodePLAIDelegate(PowerLineAI obj, ushort nodeID, ref NetNode data, InfoManager.InfoMode infoMode);
         private delegate Color GetColorSegmentPLAIDelegate(PowerLineAI obj, ushort segmentID, ref NetSegment data, InfoManager.InfoMode infoMode);
@@ -37,12 +36,12 @@ namespace Klyte.ElectricRoads.Overrides
 
         public static bool Is81TilesModEnabled()
         {
-            foreach (var plugin in PluginManager.instance.GetPluginsInfo())
+            foreach (PluginManager.PluginInfo plugin in PluginManager.instance.GetPluginsInfo())
             {
-                var Assembly81 = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == "EightyOne, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+                Assembly Assembly81 = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == "EightyOne, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
                 if (Assembly81 != null)
                 {
-                    var iuserMod = Assembly81.GetType("EightyOne.Mod");
+                    Type iuserMod = Assembly81.GetType("EightyOne.Mod");
                     if (iuserMod != null)
                     {
                         if (plugin.GetInstances<IUserMod>()[0].GetType() == iuserMod)
@@ -55,24 +54,27 @@ namespace Klyte.ElectricRoads.Overrides
             return false;
         }
 
-        public override void AwakeBody()
+        public void Awake()
         {
-            AddRedirect(origMethodColorNodeRoadBase, null, GetType().GetMethod("AfterGetColorNode", allFlags));
-            AddRedirect(origMethodColorSegmentRoadBase, null, GetType().GetMethod("AfterGetColorSegment", allFlags));
-            var src3 = typeof(ElectricityManager).GetMethod("UpdateNodeElectricity", allFlags);
-            var trp3 = GetType().GetMethod("DetourToCheckTransition", allFlags);
-            doLog($"TRANSPILE Electric ROADS TRS: {src3} => {trp3}");
+            AddRedirect(origMethodColorNodeRoadBase, null, GetType().GetMethod("AfterGetColorNode", RedirectorUtils.allFlags));
+            AddRedirect(origMethodColorSegmentRoadBase, null, GetType().GetMethod("AfterGetColorSegment", RedirectorUtils.allFlags));
+            MethodInfo src3 = typeof(ElectricityManager).GetMethod("UpdateNodeElectricity", RedirectorUtils.allFlags);
+            MethodInfo trp3 = GetType().GetMethod("DetourToCheckTransition", RedirectorUtils.allFlags);
+            LogUtils.DoLog($"TRANSPILE Electric ROADS TRS: {src3} => {trp3}");
             AddRedirect(src3, null, null, trp3);
 
-            if (Is81TilesModEnabled()) return;
+            if (Is81TilesModEnabled())
+            {
+                return;
+            }
 
-            var src = typeof(ElectricityManager).GetMethod("SimulationStepImpl", allFlags);
-            var trp = GetType().GetMethod("TranspileSimulation", allFlags);
-            var src2 = typeof(ElectricityManager).GetMethod("ConductToNode", allFlags);
-            var trp2 = GetType().GetMethod("TranspileConduction", allFlags);
-            doLog($"TRANSPILE Electric ROADS NODES: {src} => {trp}");
+            MethodInfo src = typeof(ElectricityManager).GetMethod("SimulationStepImpl", RedirectorUtils.allFlags);
+            MethodInfo trp = GetType().GetMethod("TranspileSimulation", RedirectorUtils.allFlags);
+            MethodInfo src2 = typeof(ElectricityManager).GetMethod("ConductToNode", RedirectorUtils.allFlags);
+            MethodInfo trp2 = GetType().GetMethod("TranspileConduction", RedirectorUtils.allFlags);
+            LogUtils.DoLog($"TRANSPILE Electric ROADS NODES: {src} => {trp}");
             AddRedirect(src, null, null, trp);
-            doLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
+            LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
             AddRedirect(src2, null, null, trp2);
             GetHarmonyInstance();
         }
@@ -94,18 +96,27 @@ namespace Klyte.ElectricRoads.Overrides
 
         public static bool CheckElectricConductibility(ref NetNode node)
         {
-            var conducts = conductsElectricity.TryGetValue(node.Info.m_class.name, out SavedBool item) && item.value;
-            if (!conducts) node.m_flags &= ~NetNode.Flags.Electricity;
+            if (!conductsElectricity.ContainsKey(node.Info.m_class.name))
+            {
+                conductsElectricity[node.Info.m_class.name] = GetDefaultValueFor(node.Info.m_class);
+            }
+
+            bool conducts = conductsElectricity[node.Info.m_class.name];
+            if (!conducts)
+            {
+                node.m_flags &= ~NetNode.Flags.Electricity;
+            }
+
             return conducts;
         }
 
         public static bool CheckNodeTransition(int nodeID)
         {
-            var node = Singleton<NetManager>.instance.m_nodes.m_buffer[nodeID];
+            NetNode node = Singleton<NetManager>.instance.m_nodes.m_buffer[nodeID];
             return (node.m_flags & NetNode.Flags.Transition) != NetNode.Flags.None && node.Info.m_class.m_service == ItemClass.Service.Electricity;
         }
 
-        public static bool getDefaultValueFor(ItemClass m_class)
+        public static bool GetDefaultValueFor(ItemClass m_class)
         {
             return m_class.m_service == ItemClass.Service.Electricity
                 || m_class.m_service == ItemClass.Service.Road
@@ -119,15 +130,9 @@ namespace Klyte.ElectricRoads.Overrides
                     && (m_class.m_layer == ItemClass.Layer.Default || m_class.m_layer == ItemClass.Layer.MetroTunnels));
         }
 
-        private static IEnumerable<CodeInstruction> TranspileSimulation(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method)
-        {
-            return DetourToCheckElectricConductibility(67, instr);
-        }
+        private static IEnumerable<CodeInstruction> TranspileSimulation(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(67, instr);
 
-        private static IEnumerable<CodeInstruction> TranspileConduction(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method)
-        {
-            return DetourToCheckElectricConductibility(20, instr);
-        }
+        private static IEnumerable<CodeInstruction> TranspileConduction(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(20, instr);
         private static IEnumerable<CodeInstruction> DetourToCheckElectricConductibility(int offset, IEnumerable<CodeInstruction> instr)
         {
             var instrList = instr.ToList();
@@ -142,7 +147,7 @@ namespace Klyte.ElectricRoads.Overrides
             {
                 new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
             });
-            doLog2($"{ instrList[i-1]}\n{ instrList[i]}\n{ instrList[i + 1]}\n");
+            LogUtils.DoLog($"{ instrList[i - 1]}\n{ instrList[i]}\n{ instrList[i + 1]}\n");
             return instrList;
         }
         private static IEnumerable<CodeInstruction> DetourToCheckTransition(IEnumerable<CodeInstruction> instr)
@@ -160,16 +165,6 @@ namespace Klyte.ElectricRoads.Overrides
             });
 
             return instrList;
-        }
-
-        public override void doLog(string text, params object[] param)
-        {
-            doLog2(text, param);
-        }
-
-        public static void doLog2(string text, params object[] param)
-        {
-            Console.WriteLine($"ElectricRoads v{ElectricRoadsMod.version}: {text}", param);
         }
 
     }
