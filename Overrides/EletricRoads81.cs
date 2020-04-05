@@ -20,6 +20,7 @@ namespace Klyte.ElectricRoads.Overrides
 
         public override void AwakeBody()
         {
+            if (!ElectricRoadsOverrides.Is81TilesModEnabled()) return;
             var fakeElMan = Type.GetType("EightyOne.ResourceManagers.FakeElectricityManager, EightyOne, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
             if (fakeElMan == null) return;
             var src = fakeElMan.GetMethod("SimulationStepImpl", allFlags);
@@ -35,73 +36,29 @@ namespace Klyte.ElectricRoads.Overrides
 
         private static IEnumerable<CodeInstruction> TranspileSimulation(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method)
         {
-            var offset = 55;
-            var instrList = instr.ToList();
-            //DTBUtils.doLog($"instrList[offset+3] op:{instrList[offset + 3].opcode} { instrList[offset + 3].operand}");
-            if (instrList[offset + 8].opcode != OpCodes.Ldc_I4_S)
-            {
-                doLog2("GAME VERSION INVALID!!!!!! WAIT FOR A FIX SOON!!!!!!!");
-                return instr;
-            }
-            //instrList[offset + 3].operand = (sbyte)9;
-            var orInstr74 = instrList[offset + 9];
-            var lbl = new Label();
-            var insertList = new List<CodeInstruction>
-            {
-                new CodeInstruction(orInstr74)
-                {
-                    opcode = OpCodes.Beq,
-                    operand = lbl
-                },
-                instrList[offset+0],
-                instrList[offset+1],
-                instrList[offset+2],
-                instrList[offset+3],
-                instrList[offset+4],
-                instrList[offset+5],
-                instrList[offset+6],
-                instrList[offset+7],
-                new CodeInstruction(instrList[offset+8])
-                {
-                    operand = (sbyte) 9
-                }
-            };
-            instrList[offset + 10].labels.Add(lbl);
-            instrList.InsertRange(offset + 9, insertList);
-            return instrList;
+            return DetourToCheckElectricCOnductibility(59, instr);
         }
 
         private static IEnumerable<CodeInstruction> TranspileConduction(IEnumerable<CodeInstruction> instr)
         {
-            var offset = 20;
+            return DetourToCheckElectricCOnductibility(20, instr);
+        }
+
+        private static IEnumerable<CodeInstruction> DetourToCheckElectricCOnductibility(int offset, IEnumerable<CodeInstruction> instr)
+        {
             var instrList = instr.ToList();
-            //DTBUtils.doLog($"instrList[offset+3] op:{instrList[offset + 3].opcode} { instrList[offset + 3].operand}");
-            if (instrList[offset + 4].opcode != OpCodes.Ldc_I4_S)
+            int i = offset + 1;
+            while (instrList[i].opcode != OpCodes.Bne_Un)
             {
-                doLog2("GAME VERSION INVALID!!!!!! WAIT FOR A FIX SOON!!!!!!!");
-                return instr;
+                instrList.RemoveAt(i);
             }
-            //instrList[offset + 3].operand = (sbyte)9;
-            var orInstr74 = instrList[offset + 5];
-            var lbl = new Label();
-            var insertList = new List<CodeInstruction>
+
+            instrList[i].opcode = OpCodes.Brfalse;
+            instrList.InsertRange(i, new List<CodeInstruction>
             {
-                new CodeInstruction(orInstr74)
-                {
-                    opcode = OpCodes.Beq,
-                    operand = lbl
-                },
-                instrList[offset+0],
-                instrList[offset+1],
-                instrList[offset+2],
-                instrList[offset+3],
-                new CodeInstruction(instrList[offset+4])
-                {
-                    operand = (sbyte) 9
-                }
-            };
-            instrList[offset + 6].labels.Add(lbl);
-            instrList.InsertRange(offset + 5, insertList);
+                new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
+            });
+
             return instrList;
         }
 

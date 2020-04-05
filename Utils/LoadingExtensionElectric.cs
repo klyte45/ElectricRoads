@@ -15,13 +15,28 @@ namespace Klyte.ElectricRoads.Interfaces
 {
     public class LoadingExtensionElectric : ILoadingExtension
     {
-
+        internal const string CONFIG_FILENAME = "KElectricRoads";
 
         private GameObject topObj;
 
         public void OnCreated(ILoading loading)
         {
+            if (GameSettings.FindSettingsFileByName(CONFIG_FILENAME) == null)
+            {
+                try
+                {
+                    SettingsFile settingFile = new SettingsFile
+                    {
+                        pathName = CONFIG_FILENAME
 
+                    };
+                    GameSettings.AddSettingsFile(settingFile);
+                }
+                catch (Exception e)
+                {
+                    KlyteUtils.doErrorLog($"EXCEPTION LOADING ON CREATED: {e.Message}\n{e.StackTrace}");
+                }
+            }
         }
         public void OnLevelLoaded(LoadMode mode)
         {
@@ -37,21 +52,26 @@ namespace Klyte.ElectricRoads.Interfaces
         }
         public void OnLevelUnloading()
         {
-            var typeTarg = typeof(Redirector<>);
-            var instances = ReflectionUtils.GetSubtypesRecursive(typeTarg, GetType());
-            KlyteUtils.doLog($"RoadElectric Redirectors: {instances.Count()}");
-            foreach (Type t in instances)
-            {
-                GameObject.Destroy((Redirector)KlyteUtils.GetPrivateStaticField("instance", t));
-            }
-            GameObject.Destroy(topObj);
-            typeTarg = typeof(Singleton<>);
-            instances = ReflectionUtils.GetSubtypesRecursive(typeTarg, GetType());
+            //try
+            //{
+            //    var typeTarg = typeof(Redirector<>);
+            //    var instances = ReflectionUtils.GetSubtypesRecursive(typeTarg, GetType());
+            //    KlyteUtils.doLog($"RoadElectric Redirectors: {instances.Count()}");
+            //    foreach (Type t in instances)
+            //    {
+            //        GameObject.Destroy((Redirector)KlyteUtils.GetPrivateStaticField("instance", t));
+            //    }
+            //    GameObject.Destroy(topObj);
+            //    typeTarg = typeof(Singleton<>);
+            //    instances = ReflectionUtils.GetSubtypesRecursive(typeTarg, GetType());
 
-            foreach (Type t in instances)
-            {
-                GameObject.Destroy(((MonoBehaviour)KlyteUtils.GetPrivateStaticProperty("instance", t)));
-            }
+            //    foreach (Type t in instances)
+            //    {
+            //        GameObject.Destroy(((MonoBehaviour)KlyteUtils.GetPrivateStaticProperty("instance", t)));
+            //    }
+            //}
+            //catch { }
+            Application.Quit();
         }
         public virtual void OnReleased()
         {
