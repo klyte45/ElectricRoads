@@ -1,4 +1,3 @@
-using ColossalFramework.UI;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Interfaces;
 using System.Reflection;
@@ -40,6 +39,5 @@ namespace Klyte.ElectricRoads
             //    ext.AddGroup("Please load a city to select the configuration!");
             //}
         }
-
     }
 }

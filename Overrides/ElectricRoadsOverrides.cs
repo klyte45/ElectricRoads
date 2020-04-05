@@ -4,6 +4,7 @@ using Harmony;
 using ICities;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Utils;
+using Klyte.ElectricRoads.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,6 @@ namespace Klyte.ElectricRoads.Overrides
     {
 
         public Redirector RedirectorInstance => this;
-        internal static Dictionary<string, bool> conductsElectricity = new Dictionary<string, bool>();
 
         private delegate Color GetColorNodePLAIDelegate(PowerLineAI obj, ushort nodeID, ref NetNode data, InfoManager.InfoMode infoMode);
         private delegate Color GetColorSegmentPLAIDelegate(PowerLineAI obj, ushort segmentID, ref NetSegment data, InfoManager.InfoMode infoMode);
@@ -96,12 +96,8 @@ namespace Klyte.ElectricRoads.Overrides
 
         public static bool CheckElectricConductibility(ref NetNode node)
         {
-            if (!conductsElectricity.ContainsKey(node.Info.m_class.name))
-            {
-                conductsElectricity[node.Info.m_class.name] = GetDefaultValueFor(node.Info.m_class);
-            }
+            bool conducts = ClassesData.Instance.GetConductibility(node.Info.m_class);
 
-            bool conducts = conductsElectricity[node.Info.m_class.name];
             if (!conducts)
             {
                 node.m_flags &= ~NetNode.Flags.Electricity;
@@ -110,25 +106,14 @@ namespace Klyte.ElectricRoads.Overrides
             return conducts;
         }
 
+
+
         public static bool CheckNodeTransition(int nodeID)
         {
             NetNode node = Singleton<NetManager>.instance.m_nodes.m_buffer[nodeID];
             return (node.m_flags & NetNode.Flags.Transition) != NetNode.Flags.None && node.Info.m_class.m_service == ItemClass.Service.Electricity;
         }
 
-        public static bool GetDefaultValueFor(ItemClass m_class)
-        {
-            return m_class.m_service == ItemClass.Service.Electricity
-                || m_class.m_service == ItemClass.Service.Road
-                || m_class.m_service == ItemClass.Service.Beautification
-                || (m_class.m_service == ItemClass.Service.PublicTransport
-                    && (m_class.m_subService == ItemClass.SubService.PublicTransportTrain
-                        || m_class.m_subService == ItemClass.SubService.PublicTransportTram
-                        || m_class.m_subService == ItemClass.SubService.PublicTransportMonorail
-                        || m_class.m_subService == ItemClass.SubService.PublicTransportMetro
-                        || m_class.m_subService == ItemClass.SubService.PublicTransportPlane)
-                    && (m_class.m_layer == ItemClass.Layer.Default || m_class.m_layer == ItemClass.Layer.MetroTunnels));
-        }
 
         private static IEnumerable<CodeInstruction> TranspileSimulation(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(67, instr);
 
