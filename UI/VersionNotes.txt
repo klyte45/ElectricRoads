@@ -1,3 +1,5 @@
 ﻿<color #AA44FF>ERv2.0</color>
 	- New UI, now with more information about the assets affected by turning on/off each type of network
 	- <color #ff0000>NOTICE:</color> The old configuration was lost, but now you will be able to save the configuration per city independently, and also create a default configuration for new ones in <sprite K45_K45Button> Menu 
+
+<color #FFFF00>NOTICE: This mod doesn't generate electricity, just distribute it along nets. You will still need to have a power source.</color>

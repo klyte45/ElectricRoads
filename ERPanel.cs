@@ -115,6 +115,7 @@ namespace Klyte.ElectricRoads
                         {
                             uiCheckbox.isChecked = false;
                         }
+                        return true;
 
                     });
                 };

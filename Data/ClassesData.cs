@@ -1,4 +1,5 @@
-﻿using Klyte.Commons.Interfaces;
+﻿using ColossalFramework.Globalization;
+using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,34 @@ namespace Klyte.ElectricRoads.Data
                 catch (Exception e)
                 {
                     LogUtils.DoErrorLog($"EXCEPTION WHILE LOADING: {e.GetType()} - {e.Message}\n {e.StackTrace}");
+
+                    K45DialogControl.ShowModal(new K45DialogControl.BindProperties()
+                    {
+                        icon = ElectricRoadsMod.Instance.IconName,
+                        title = Locale.Get("K45_ER_ERROR_LOADING_DEFAULTS_TITLE"),
+                        message = string.Format(Locale.Get("K45_ER_ERROR_LOADING_DEFAULTS_MESSAGE"), ElectricRoadsController.DEFAULT_CONFIG_FILE, e.GetType(), e.Message, e.StackTrace),
+                        showButton1 = true,
+                        textButton1 = Locale.Get("K45_ER_OK_BUTTON"),
+                        showButton2 = true,
+                        textButton2 = Locale.Get("K45_ER_OPEN_FOLDER_ON_EXPLORER_BUTTON"),
+                        showButton3 = true,
+                        textButton3 = Locale.Get("K45_ER_GO_TO_MOD_PAGE_BUTTON"),
+                        useFullWindowWidth = true
+                    }, (x) =>
+                    {
+                        if (x == 2)
+                        {
+                            ColossalFramework.Utils.OpenInFileBrowser(ElectricRoadsController.FOLDER_PATH);
+                            return false;
+                        }
+                        else if (x == 3)
+                        {
+                            ColossalFramework.Utils.OpenUrlThreaded("https://steamcommunity.com/sharedfiles/filedetails/?id=1689984220");
+                            return false;
+                        }
+                        return true;
+                    });
+
                 }
             }
         }
