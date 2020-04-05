@@ -19,8 +19,10 @@ namespace Klyte.ElectricRoads.Overrides
         {
             if (!ElectricRoadsOverrides.Is81TilesModEnabled())
             {
+                LogUtils.DoWarnLog("Loading 81 tiles hooks stopped because the mod is not active");
                 return;
             }
+            LogUtils.DoWarnLog("Loading 81 tiles hooks");
 
             var fakeElMan = Type.GetType("EightyOne.ResourceManagers.FakeElectricityManager, EightyOne, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
             if (fakeElMan == null)
@@ -57,7 +59,7 @@ namespace Klyte.ElectricRoads.Overrides
             {
                 new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
             });
-
+            LogUtils.PrintMethodIL(instrList);
             return instrList;
         }
     }

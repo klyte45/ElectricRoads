@@ -62,11 +62,14 @@ namespace Klyte.ElectricRoads.Overrides
             MethodInfo trp3 = GetType().GetMethod("DetourToCheckTransition", RedirectorUtils.allFlags);
             LogUtils.DoLog($"TRANSPILE Electric ROADS TRS: {src3} => {trp3}");
             AddRedirect(src3, null, null, trp3);
+            PluginManager.instance.eventPluginsStateChanged += RecheckMods;
 
             if (Is81TilesModEnabled())
             {
+                LogUtils.DoWarnLog("Loading default hooks stopped because the 81 tiles mod is active");
                 return;
             }
+            LogUtils.DoWarnLog("Loading default hooks");
 
             MethodInfo src = typeof(ElectricityManager).GetMethod("SimulationStepImpl", RedirectorUtils.allFlags);
             MethodInfo trp = GetType().GetMethod("TranspileSimulation", RedirectorUtils.allFlags);
@@ -77,6 +80,13 @@ namespace Klyte.ElectricRoads.Overrides
             LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
             AddRedirect(src2, null, null, trp2);
             GetHarmonyInstance();
+        }
+
+        private static void RecheckMods()
+        {
+            Redirector.UnpatchAll();
+            Redirector.PatchAll();
+            PluginManager.instance.eventPluginsStateChanged -= RecheckMods;
         }
 
         private static void AfterGetColorNode(ref Color __result, ushort nodeID, ref NetNode data, InfoManager.InfoMode infoMode)
@@ -133,6 +143,7 @@ namespace Klyte.ElectricRoads.Overrides
                 new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
             });
             LogUtils.DoLog($"{ instrList[i - 1]}\n{ instrList[i]}\n{ instrList[i + 1]}\n");
+            LogUtils.PrintMethodIL(instrList);
             return instrList;
         }
         private static IEnumerable<CodeInstruction> DetourToCheckTransition(IEnumerable<CodeInstruction> instr)
@@ -148,7 +159,7 @@ namespace Klyte.ElectricRoads.Overrides
                 new CodeInstruction(OpCodes.Ldarg_1),
                 new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckNodeTransition"))
             });
-
+            LogUtils.PrintMethodIL(instrList);
             return instrList;
         }
 

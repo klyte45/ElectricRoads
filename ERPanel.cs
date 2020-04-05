@@ -1,6 +1,7 @@
 ﻿using ColossalFramework.Globalization;
 using ColossalFramework.UI;
 using Klyte.Commons.Extensors;
+using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using Klyte.ElectricRoads.Data;
 using System;
@@ -35,42 +36,13 @@ namespace Klyte.ElectricRoads
 
             CreateTitleBar();
 
-            KlyteMonoUtils.CreateUIElement(out UIButton exportAsDefault, _mainPanel.transform, "ExportAsDefault", new Vector4(10, 50, 180, 30));
-            KlyteMonoUtils.InitButtonFull(exportAsDefault, false, "ButtonMenu");
-            exportAsDefault.localeID = "K45_ER_EXPORT_DEFAULT_BTN";
-            exportAsDefault.minimumSize = new Vector2(180, 30);
-            KlyteMonoUtils.LimitWidthAndBox(exportAsDefault);
-            exportAsDefault.eventClicked += (x, y) => ClassesData.Instance.SaveAsDefault();
+            CreateTopButton(_mainPanel, "ExportAsDefault", "K45_ER_EXPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Save.ToString(), new Vector2(10, 50), (x, y) => ClassesData.Instance.SaveAsDefault());
+            CreateTopButton(_mainPanel, "ImportDefault", "K45_ER_IMPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Load.ToString(), new Vector2(95, 50), (x, y) => ClassesData.Instance.LoadDefaults());
+            CreateTopButton(_mainPanel, "SelectAll", "K45_ER_SELECT_ALL_BTN", "check-checked", new Vector2(180, 50), (x, y) => ClassesData.Instance.SelectAll());
+            CreateTopButton(_mainPanel, "SelectNone", "K45_ER_SELECT_NONE_BTN", "check-unchecked", new Vector2(265, 50), (x, y) => ClassesData.Instance.UnselectAll());
+            CreateTopButton(_mainPanel, "Reset", "K45_ER_RESET_BTN", CommonsSpriteNames.K45_Reload.ToString(), new Vector2(350, 50), (x, y) => ClassesData.Instance.SafeCleanAll(m_allClasses.Keys));
 
-            KlyteMonoUtils.CreateUIElement(out UIButton importFromDefault, _mainPanel.transform, "ExportAsDefault", new Vector4(210, 50, 180, 30));
-            KlyteMonoUtils.InitButtonFull(importFromDefault, false, "ButtonMenu");
-            importFromDefault.localeID = "K45_ER_IMPORT_DEFAULT_BTN";
-            importFromDefault.minimumSize = new Vector2(180, 30);
-            KlyteMonoUtils.LimitWidthAndBox(importFromDefault, 180);
-            importFromDefault.eventClicked += (x, y) => ClassesData.Instance.LoadDefaults();
-
-            KlyteMonoUtils.CreateUIElement(out UIButton selectAll, _mainPanel.transform, "SelectAll", new Vector4(10, 90, 120, 30));
-            KlyteMonoUtils.InitButtonFull(selectAll, false, "ButtonMenu");
-            selectAll.localeID = "K45_ER_SELECT_ALL_BTN";
-            selectAll.minimumSize = new Vector2(120, 30);
-            KlyteMonoUtils.LimitWidthAndBox(selectAll, 120);
-            selectAll.eventClicked += (x, y) => ClassesData.Instance.SelectAll();
-
-            KlyteMonoUtils.CreateUIElement(out UIButton selectNone, _mainPanel.transform, "selectNone", new Vector4(140, 90, 120, 30));
-            KlyteMonoUtils.InitButtonFull(selectNone, false, "ButtonMenu");
-            selectNone.localeID = "K45_ER_SELECT_NONE_BTN";
-            selectNone.minimumSize = new Vector2(120, 30);
-            KlyteMonoUtils.LimitWidthAndBox(selectNone, 120);
-            selectNone.eventClicked += (x, y) => ClassesData.Instance.UnselectAll();
-
-            KlyteMonoUtils.CreateUIElement(out UIButton reset, _mainPanel.transform, "reset", new Vector4(270, 90, 120, 30));
-            KlyteMonoUtils.InitButtonFull(reset, false, "ButtonMenu");
-            reset.localeID = "K45_ER_RESET_BTN";
-            reset.minimumSize = new Vector2(120, 30);
-            KlyteMonoUtils.LimitWidthAndBox(reset, 120);
-            reset.eventClicked += (x, y) => ClassesData.Instance.SafeCleanAll(m_allClasses.Keys);
-
-            KlyteMonoUtils.CreateScrollPanel(_mainPanel, out UIScrollablePanel scrollPanel, out _, _mainPanel.width - 25, _mainPanel.height - 135, new Vector3(5, 130));
+            KlyteMonoUtils.CreateScrollPanel(_mainPanel, out UIScrollablePanel scrollPanel, out _, _mainPanel.width - 25, _mainPanel.height - 105, new Vector3(5, 100));
             scrollPanel.autoLayout = true;
             scrollPanel.autoLayoutDirection = LayoutDirection.Vertical;
             scrollPanel.autoLayoutPadding = new RectOffset(0, 0, 5, 5);
@@ -150,6 +122,19 @@ namespace Klyte.ElectricRoads
             Quicksort(scrollPanel.components, new Comparison<UIComponent>(CompareNames), false);
         }
 
+        private static void CreateTopButton(UIPanel _mainPanel, string name, string tooltipLocale, string sprite, Vector2 position, MouseEventHandler onClicked)
+        {
+            KlyteMonoUtils.CreateUIElement(out UIButton button, _mainPanel.transform, name, new Vector4(10, 50, 40, 40));
+            KlyteMonoUtils.InitButtonFull(button, false, "OptionBase");
+            button.focusedBgSprite = "";
+            button.normalFgSprite = sprite;
+            button.relativePosition = position;
+            button.tooltipLocaleID = tooltipLocale;
+            button.eventClicked += onClicked;
+            button.scaleFactor = .6f;
+
+        }
+
         private void SetNewValue(UICheckBox uiCheckbox, bool b)
         {
             uiCheckbox.eventCheckChanged -= SetItemClassValue;
@@ -180,18 +165,6 @@ namespace Klyte.ElectricRoads
             KlyteMonoUtils.CreateUIElement(out UISprite logo, MainPanel.transform, "TLMLogo", new Vector4(22, 5f, 32, 32));
             logo.spriteName = ElectricRoadsMod.Instance.IconName;
         }
-
-        //        foreach (IGrouping<string, NetInfo> clazz in classes)
-        //            {
-        //                if (!ClassesData.Instance.SafeGet(clazz.Key) == null)
-        //                {
-        //                    var itemList = clazz.ToList();
-        //        ElectricRoadsOverrides.conductsElectricity[clazz.Key] = ElectricRoadsOverrides.getDefaultValueFor(itemList[0].m_class);
-        //                    var checkbox = (UICheckBox)gr.AddCheckbox(clazz.Key, ElectricRoadsOverrides.conductsElectricity[clazz.Key], (x) => ElectricRoadsOverrides.conductsElectricity[clazz.Key] = x);
-        //        checkbox.tooltip = $"Affected assets:\n{string.Join("\n", itemList?.Select(x => Locale.Exists("NET_TITLE", x?.name) ? Locale.Get("NET_TITLE", x?.name) : x.m_isCustomContent ? null : x?.name)?.Where(x => x != null)?.ToArray())}";
-        //                }
-        //}
-
         #endregion
     }
 }
