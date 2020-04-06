@@ -1,7 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Plugins;
 using Harmony;
-using ICities;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Utils;
 using Klyte.ElectricRoads.Data;
@@ -34,25 +33,7 @@ namespace Klyte.ElectricRoads.Overrides
 
         private static readonly PowerLineAI defPLAI = new PowerLineAI();
 
-        public static bool Is81TilesModEnabled()
-        {
-            foreach (PluginManager.PluginInfo plugin in PluginManager.instance.GetPluginsInfo())
-            {
-                Assembly Assembly81 = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == "EightyOne, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-                if (Assembly81 != null)
-                {
-                    Type iuserMod = Assembly81.GetType("EightyOne.Mod");
-                    if (iuserMod != null)
-                    {
-                        if (plugin.GetInstances<IUserMod>()[0].GetType() == iuserMod)
-                        {
-                            return plugin.isEnabled;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
+        public static bool Is81TilesModEnabled() => ElectricRoadsMod.VerifyModsEnabled(new List<ulong>() { 576327847L }, new List<string>() { "EightyOne" }).Count > 0;
 
         public void Awake()
         {
