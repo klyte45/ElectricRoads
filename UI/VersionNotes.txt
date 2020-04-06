@@ -6,4 +6,7 @@
 	- Fixed 81 tiles mod detection
 	- Fixed <sprite K45_K45Button> Button not appearing
 
+<color #ffff00>Hotfix 2.0.0.2</color>
+	- Changed auto loading mod settings (to try to fix the requirement of unsubscribe and resubscribe the mod to make it work properly)
+
 <color #FFFF00>NOTICE: This mod doesn't generate electricity, just distribute it along nets. You will still need to have a power source.</color>
