@@ -33,7 +33,16 @@ namespace Klyte.ElectricRoads.Overrides
 
         private static readonly PowerLineAI defPLAI = new PowerLineAI();
 
-        public static bool Is81TilesModEnabled() => ElectricRoadsMod.VerifyModsEnabled(new List<ulong>() { 576327847L }, new List<string>() { "EightyOne" }).Count > 0;
+        public static List<Type> Get81TilesFakeManagerTypes()
+        {
+            return Singleton<PluginManager>.instance.GetPluginsInfo().Where((PluginManager.PluginInfo pi) =>
+                pi.assemblyCount > 0
+                && pi.isEnabled
+                && pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Where(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager") != null).Count() > 0
+             ).SelectMany(pi => pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Select(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager"))).ToList();
+
+
+        }
 
         public void Awake()
         {
@@ -45,10 +54,11 @@ namespace Klyte.ElectricRoads.Overrides
             AddRedirect(src3, null, null, trp3);
             PluginManager.instance.eventPluginsStateChanged += RecheckMods;
 
-            if (Is81TilesModEnabled())
+            if (Get81TilesFakeManagerTypes().Count > 0)
             {
                 LogUtils.DoWarnLog("Loading default hooks stopped because the 81 tiles mod is active");
                 return;
+
             }
             LogUtils.DoWarnLog("Loading default hooks");
 
