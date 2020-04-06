@@ -8,3 +8,6 @@
 	- Fixed load order of mods that was preventing 81 tiles patch to work properly.
 	- Added a special popup showing the patching status of this mod. Enable the Debug Mode to see it always on game loading and be sure the correct patch was applied. <color #FFFF00>It also contains instructions about how to send the logs for checking bugs. Take a look there!</color>
 	NOTE: That popup can also be found by clicking "Details" button on mod options at pause/options menu 
+	
+<color #ffff00>Patch 2.0.0 r6</color>
+	- Added option to reset the <sprite K45_K45Button> button position
