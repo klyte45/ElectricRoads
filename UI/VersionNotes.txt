@@ -1,12 +1,10 @@
 ﻿<color #AA44FF>ERv2.0</color>
 	- New UI, now with more information about the assets affected by turning on/off each type of network
 	- <color #ff0000>NOTICE:</color> The old configuration was lost, but now you will be able to save the configuration per city independently, and also create a default configuration for new ones in <sprite K45_K45Button> Menu 
-
-<color #ffff00>Hotfix 2.0.0.1</color>
-	- Fixed <sprite K45_K45Button> Button not appearing
-	
-<color #ffff00>Hotfix 2.0.0.2</color>
-	- Changed auto loading mod settings (to try to fix the requirement of unsubscribe and resubscribe the mod to make it work properly)
-
-<color #ffff00>Hotfix 2.0.0.4</color>
 	- Fixed 81 tiles mod detection
+
+<color #ffff00>Hotfix 2.0.0 r5</color>
+	- Added info about patching in pause menu.
+	- Fixed load order of mods that was preventing 81 tiles patch to work properly.
+	- Added a special popup showing the patching status of this mod. Enable the Debug Mode to see it always on game loading and be sure the correct patch was applied. <color #FFFF00>It also contains instructions about how to send the logs for checking bugs. Take a look there!</color>
+	NOTE: That popup can also be found by clicking "Details" button on mod options at pause/options menu 

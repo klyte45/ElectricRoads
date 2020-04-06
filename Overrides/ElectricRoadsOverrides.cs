@@ -40,11 +40,19 @@ namespace Klyte.ElectricRoads.Overrides
                 && pi.isEnabled
                 && pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Where(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager") != null).Count() > 0
              ).SelectMany(pi => pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Select(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager"))).ToList();
-
-
         }
 
-        public void Awake()
+        private static string lastAssemblyDebugString = "";
+
+        public static string GetAssembliesDebugString() => lastAssemblyDebugString;
+        public static string GenerateAssembliesDebugString() => string.Join(" | ", Singleton<PluginManager>.instance.GetPluginsInfo()
+            .Where((PluginManager.PluginInfo pi) => pi.assemblyCount > 0)
+            .Select(pi => $"<color {(pi.isEnabled ? "#00ff00" : "#FF0000")}>[{string.Join(",", pi.GetAssemblies().Select(x => ("EightyOne" == x.GetName().Name) ? $"*{GetStringDebugCheck81Assembly(x)}*" : GetStringDebugCheck81Assembly(x)).ToArray())}]</color>")
+            .ToArray());
+
+        private static string GetStringDebugCheck81Assembly(Assembly x) => (x.GetType("EightyOne.ResourceManagers.FakeElectricityManager") != null ? $"#{x.GetName().Name}#" : x.GetName().Name);
+
+        public void Start()
         {
             AddRedirect(origMethodColorNodeRoadBase, null, GetType().GetMethod("AfterGetColorNode", RedirectorUtils.allFlags));
             AddRedirect(origMethodColorSegmentRoadBase, null, GetType().GetMethod("AfterGetColorSegment", RedirectorUtils.allFlags));
@@ -52,8 +60,12 @@ namespace Klyte.ElectricRoads.Overrides
             MethodInfo trp3 = GetType().GetMethod("DetourToCheckTransition", RedirectorUtils.allFlags);
             LogUtils.DoLog($"TRANSPILE Electric ROADS TRS: {src3} => {trp3}");
             AddRedirect(src3, null, null, trp3);
-            PluginManager.instance.eventPluginsStateChanged += RecheckMods;
+            PluginManager.instance.eventPluginsStateChanged += RecheckMods;            
 
+            ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.RegularGame;
+
+
+            lastAssemblyDebugString = GenerateAssembliesDebugString();
             if (Get81TilesFakeManagerTypes().Count > 0)
             {
                 LogUtils.DoWarnLog("Loading default hooks stopped because the 81 tiles mod is active");
@@ -71,6 +83,7 @@ namespace Klyte.ElectricRoads.Overrides
             LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
             AddRedirect(src2, null, null, trp2);
             GetHarmonyInstance();
+            ElectricRoadsMod.m_currentPatched |= ElectricRoadsMod.PatchFlags.RegularGame;
         }
 
         private static void RecheckMods()

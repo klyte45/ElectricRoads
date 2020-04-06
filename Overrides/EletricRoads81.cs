@@ -16,8 +16,9 @@ namespace Klyte.ElectricRoads.Overrides
 
         public Redirector RedirectorInstance => this;
 
-        public void Awake()
+        public void Start()
         {
+            ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             List<Type> targetTypes = ElectricRoadsOverrides.Get81TilesFakeManagerTypes();
             if (targetTypes.Count == 0)
             {
@@ -39,6 +40,8 @@ namespace Klyte.ElectricRoads.Overrides
                     AddRedirect(src2, null, null, trp2);
                 }
                 GetHarmonyInstance();
+
+                ElectricRoadsMod.m_currentPatched |= ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             }
             catch (Exception e)
             {
