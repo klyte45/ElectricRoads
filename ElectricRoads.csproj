@@ -163,10 +163,15 @@
     <EmbeddedResource Include="commons\UI\i18n\fr.properties" />
     <EmbeddedResource Include="commons\UI\i18n\pt.properties" />
     <EmbeddedResource Include="commons\UI\i18n\ru.properties" />
+    <EmbeddedResource Include="commons\UI\Images\%25K45_HexagonIcon.png" />
     <EmbeddedResource Include="commons\UI\Images\%25K45_K45Button.png" />
     <EmbeddedResource Include="commons\UI\Images\%25K45_K45ButtonDisabled.png" />
     <EmbeddedResource Include="commons\UI\Images\%25K45_K45ButtonFocused.png" />
     <EmbeddedResource Include="commons\UI\Images\%25K45_K45ButtonHovered.png" />
+    <EmbeddedResource Include="commons\UI\Images\%25K45_Load.png" />
+    <EmbeddedResource Include="commons\UI\Images\%25K45_Reload.png" />
+    <EmbeddedResource Include="commons\UI\Images\%25K45_Save.png" />
+    <EmbeddedResource Include="commons\UI\Images\bordersDescriptor.txt" />
     <EmbeddedResource Include="UI\i18n\cn.properties" />
     <EmbeddedResource Include="UI\i18n\de.properties" />
     <EmbeddedResource Include="UI\i18n\en.properties" />

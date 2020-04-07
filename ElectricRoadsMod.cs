@@ -5,7 +5,7 @@ using Klyte.Commons.Utils;
 using Klyte.ElectricRoads.Overrides;
 using System.Reflection;
 
-[assembly: AssemblyVersion("2.0.0.8")]
+[assembly: AssemblyVersion("2.0.0.9")]
 namespace Klyte.ElectricRoads
 {
     public class ElectricRoadsMod : BasicIUserMod<ElectricRoadsMod, ElectricRoadsController, ERPanel>
@@ -39,7 +39,8 @@ namespace Klyte.ElectricRoads
                     {
                         icon = ElectricRoadsMod.Instance.IconName,
                         title = "Something got wrong on Hooking",
-                        message = "Electric Roads failed loading code detours. Please send me a print from this screen with the output_log.txt (or player.log on Mac/Linux) in the mod Workshop page.\n\n" +
+                        message = "<color #FFFF00>NOTICE: If you just enabled this mod in the mod selection menu, ignore this warning and just close and open again your game to make this mod work properly!</color>\n\n" +
+                        "If not, Electric Roads failed loading code detours. Please send me a print from this screen with the output_log.txt (or player.log on Mac/Linux) in the mod Workshop page.\n\n" +
                         "There's a link for a Worshop guide by <color #008800>aubergine18</color> explaining how to find your log file, depending of OS you're using." +
                             "\n\n Technical details: " + ElectricRoadsOverrides.GetAssembliesDebugString(),
                         showButton1 = true,
