@@ -5,7 +5,7 @@ using Klyte.Commons.Utils;
 using Klyte.ElectricRoads.Overrides;
 using System.Reflection;
 
-[assembly: AssemblyVersion("2.0.0.6")]
+[assembly: AssemblyVersion("2.0.0.8")]
 namespace Klyte.ElectricRoads
 {
     public class ElectricRoadsMod : BasicIUserMod<ElectricRoadsMod, ElectricRoadsController, ERPanel>
