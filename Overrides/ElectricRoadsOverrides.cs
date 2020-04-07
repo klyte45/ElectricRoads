@@ -54,13 +54,19 @@ namespace Klyte.ElectricRoads.Overrides
 
         public void Start()
         {
+            if (GenerateAssembliesDebugString().IsNullOrWhiteSpace())
+            {
+                LogUtils.DoWarnLog("Fake start...");
+                return;
+            }
+
             AddRedirect(origMethodColorNodeRoadBase, null, GetType().GetMethod("AfterGetColorNode", RedirectorUtils.allFlags));
             AddRedirect(origMethodColorSegmentRoadBase, null, GetType().GetMethod("AfterGetColorSegment", RedirectorUtils.allFlags));
             MethodInfo src3 = typeof(ElectricityManager).GetMethod("UpdateNodeElectricity", RedirectorUtils.allFlags);
             MethodInfo trp3 = GetType().GetMethod("DetourToCheckTransition", RedirectorUtils.allFlags);
             LogUtils.DoLog($"TRANSPILE Electric ROADS TRS: {src3} => {trp3}");
             AddRedirect(src3, null, null, trp3);
-            PluginManager.instance.eventPluginsStateChanged += RecheckMods;            
+            PluginManager.instance.eventPluginsStateChanged += RecheckMods;
 
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.RegularGame;
 

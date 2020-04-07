@@ -63,13 +63,12 @@ namespace Klyte.ElectricRoads.Data
         public bool GetConductibility(ItemClass clazz)
         {
             bool? val = SafeGet(clazz.name);
-            bool conducts = val ?? GetDefaultValueFor(clazz);
             if (val == null)
             {
-                SafeSet(clazz.name, conducts);
+                val = GetDefaultValueFor(clazz);
+                SafeSet(clazz.name, val);
             }
-
-            return conducts;
+            return val ?? false;
         }
 
         public void SetConductibility(ItemClass clazz, bool value) => SafeSet(clazz.name, value);

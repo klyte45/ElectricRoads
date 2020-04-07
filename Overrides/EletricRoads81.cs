@@ -1,4 +1,5 @@
-﻿using ColossalFramework.Globalization;
+﻿using ColossalFramework;
+using ColossalFramework.Globalization;
 using Harmony;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Utils;
@@ -18,6 +19,12 @@ namespace Klyte.ElectricRoads.Overrides
 
         public void Start()
         {
+            if (ElectricRoadsOverrides.GenerateAssembliesDebugString().IsNullOrWhiteSpace())
+            {
+                LogUtils.DoWarnLog("Fake start...");
+                return;
+            }
+
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             List<Type> targetTypes = ElectricRoadsOverrides.Get81TilesFakeManagerTypes();
             if (targetTypes.Count == 0)

@@ -14,3 +14,6 @@
 
 <color #ffff00>Patch 2.0.0 r9</color>
 	- Fixed the PopUp not being displayed right after activating the mod.
+
+<color #ffff00>Patch 2.0.0 r10</color>
+	- Added an option to not show the mod options ingame, it won't even load so you can configure a default file once and then get rid of <sprite K45_K45Button> button after! (valid if there's no other mod that requires that button to exists)
