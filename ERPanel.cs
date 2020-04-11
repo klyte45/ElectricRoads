@@ -1,6 +1,7 @@
 ﻿using ColossalFramework.Globalization;
 using ColossalFramework.UI;
 using Klyte.Commons.Extensors;
+using Klyte.Commons.Interfaces;
 using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using Klyte.ElectricRoads.Data;
@@ -12,37 +13,24 @@ using UnityEngine;
 namespace Klyte.ElectricRoads
 {
 
-    public class ERPanel : UICustomControl
+    public class ERPanel : BasicKPanel<ElectricRoadsMod,ElectricRoadsController,ERPanel>
     {
-        private UIPanel m_controlContainer;
-
-        public static ERPanel Instance { get; private set; }
-        public UIPanel MainPanel { get; private set; }
-
         private Dictionary<ItemClass, List<NetInfo>> m_allClasses;
 
+        public override float PanelWidth => 400;
+
+        public override float PanelHeight => m_controlContainer.parent.height;
+
         #region Awake
-        public void Awake()
+        protected override void AwakeActions()
         {
-            Instance = this;
-            m_controlContainer = GetComponent<UIPanel>();
-            m_controlContainer.area = new Vector4(0, 0, 0, 0);
-            m_controlContainer.isVisible = false;
-            m_controlContainer.name = "ERanel";
+            CreateTopButton(MainPanel, "ExportAsDefault", "K45_ER_EXPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Save.ToString(), new Vector2(10, 50), (x, y) => ClassesData.Instance.SaveAsDefault());
+            CreateTopButton(MainPanel, "ImportDefault", "K45_ER_IMPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Load.ToString(), new Vector2(95, 50), (x, y) => ClassesData.Instance.LoadDefaults());
+            CreateTopButton(MainPanel, "SelectAll", "K45_ER_SELECT_ALL_BTN", "check-checked", new Vector2(180, 50), (x, y) => ClassesData.Instance.SelectAll());
+            CreateTopButton(MainPanel, "SelectNone", "K45_ER_SELECT_NONE_BTN", "check-unchecked", new Vector2(265, 50), (x, y) => ClassesData.Instance.UnselectAll());
+            CreateTopButton(MainPanel, "Reset", "K45_ER_RESET_BTN", CommonsSpriteNames.K45_Reload.ToString(), new Vector2(350, 50), (x, y) => ClassesData.Instance.SafeCleanAll(m_allClasses.Keys));
 
-            KlyteMonoUtils.CreateUIElement(out UIPanel _mainPanel, GetComponent<UIPanel>().transform, "ERListPanel", new Vector4(0, 0, 400, m_controlContainer.parent.height));
-            MainPanel = _mainPanel;
-            MainPanel.backgroundSprite = "MenuPanel2";
-
-            CreateTitleBar();
-
-            CreateTopButton(_mainPanel, "ExportAsDefault", "K45_ER_EXPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Save.ToString(), new Vector2(10, 50), (x, y) => ClassesData.Instance.SaveAsDefault());
-            CreateTopButton(_mainPanel, "ImportDefault", "K45_ER_IMPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Load.ToString(), new Vector2(95, 50), (x, y) => ClassesData.Instance.LoadDefaults());
-            CreateTopButton(_mainPanel, "SelectAll", "K45_ER_SELECT_ALL_BTN", "check-checked", new Vector2(180, 50), (x, y) => ClassesData.Instance.SelectAll());
-            CreateTopButton(_mainPanel, "SelectNone", "K45_ER_SELECT_NONE_BTN", "check-unchecked", new Vector2(265, 50), (x, y) => ClassesData.Instance.UnselectAll());
-            CreateTopButton(_mainPanel, "Reset", "K45_ER_RESET_BTN", CommonsSpriteNames.K45_Reload.ToString(), new Vector2(350, 50), (x, y) => ClassesData.Instance.SafeCleanAll(m_allClasses.Keys));
-
-            KlyteMonoUtils.CreateScrollPanel(_mainPanel, out UIScrollablePanel scrollPanel, out _, _mainPanel.width - 25, _mainPanel.height - 105, new Vector3(5, 100));
+            KlyteMonoUtils.CreateScrollPanel(MainPanel, out UIScrollablePanel scrollPanel, out _, MainPanel.width - 25, MainPanel.height - 105, new Vector3(5, 100));
             scrollPanel.autoLayout = true;
             scrollPanel.autoLayoutDirection = LayoutDirection.Vertical;
             scrollPanel.autoLayoutPadding = new RectOffset(0, 0, 5, 5);

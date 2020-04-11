@@ -1,25 +1,17 @@
-﻿<color #666666>YES, IT WAS UPDATED AGAIN...</color
+﻿<color #666666>ONE MORE...</color>
 
-<color #ffff00>Patch 2.0.0 r15</color>
-	- Fixed: The update changes modal is not showing on top of all windows if the game What's new panel is shown, causing some button mess
-
+<color #ffff00>Patch 2.0.0 r16</color>
+	- Fixed: Object instance not set error fixed. Thanks <color #888800>Jay</color> for reporting the error and sending the log!
+	- Added general fixes from Custom Zone Mixer
 
 <color #888888>ERv2.0
 	- New UI, now with more information about the assets affected by turning on/off each type of network
 	- <color #ff0000>NOTICE:</color> The old configuration was lost, but now you will be able to save the configuration per city independently, and also create a default configuration for new ones in <sprite K45_K45Button> Menu 
 	- Fixed 81 tiles mod detection
-
-Hotfix 2.0.0 r5
 	- Added info about patching in pause menu.
 	- Fixed load order of mods that was preventing 81 tiles patch to work properly.
 	- Added a special popup showing the patching status of this mod. Enable the Debug Mode to see it always on game loading and be sure the correct patch was applied. <color #FFFF00>It also contains instructions about how to send the logs for checking bugs. Take a look there!</color>
 	NOTE: That popup can also be found by clicking "Details" button on mod options at pause/options menu 
-	
-Patch 2.0.0 r6
 	- Added option to reset the <sprite K45_K45Button> button position.
-
-Patch 2.0.0 r9
 	- Fixed the PopUp not being displayed right after activating the mod.
-
-Patch 2.0.0 r10
 	- Added an option to not show the mod options ingame, it won't even load so you can configure a default file once and then get rid of <sprite K45_K45Button> button after! (valid if there's no other mod that requires that button to exists)</color>

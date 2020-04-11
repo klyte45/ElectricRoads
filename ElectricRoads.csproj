@@ -75,6 +75,7 @@
     <Compile Include="commons\Extensors\UI\UIHelperExtended.cs" />
     <Compile Include="commons\Interfaces\BasicIUserMod.cs" />
     <Compile Include="commons\Interfaces\BasicIUserModSimplified.cs" />
+    <Compile Include="commons\Interfaces\BasicKPanel.cs" />
     <Compile Include="commons\Interfaces\IController.cs" />
     <Compile Include="commons\Interfaces\IViewStartActions.cs" />
     <Compile Include="commons\Interfaces\Warehouse\BasicSingletonSerializableDataExtension.cs" />
