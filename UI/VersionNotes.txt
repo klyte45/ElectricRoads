@@ -1,8 +1,5 @@
-﻿<color #666666>ONE MORE...</color>
-
-<color #ffff00>Patch 2.0.0 r16</color>
-	- Fixed: Object instance not set error fixed. Thanks <color #888800>Jay</color> for reporting the error and sending the log!
-	- Added general fixes from Custom Zone Mixer
+﻿<color #ffff00>Patch 2.0.0 r17</color>
+	- Changed some mod patching method: now both patches can be done at same time.
 
 <color #888888>ERv2.0
 	- New UI, now with more information about the assets affected by turning on/off each type of network
@@ -14,4 +11,7 @@
 	NOTE: That popup can also be found by clicking "Details" button on mod options at pause/options menu 
 	- Added option to reset the <sprite K45_K45Button> button position.
 	- Fixed the PopUp not being displayed right after activating the mod.
-	- Added an option to not show the mod options ingame, it won't even load so you can configure a default file once and then get rid of <sprite K45_K45Button> button after! (valid if there's no other mod that requires that button to exists)</color>
+	- Added an option to not show the mod options ingame, it won't even load so you can configure a default file once and then get rid of <sprite K45_K45Button> button after! (valid if there's no other mod that requires that button to exists)
+	- Fixed: Object instance not set error fixed. Thanks <color #888800>Jay</color> for reporting the error and sending the log!
+	- Added general fixes from Custom Zone Mixer
+</color>

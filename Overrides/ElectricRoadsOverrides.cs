@@ -37,7 +37,6 @@ namespace Klyte.ElectricRoads.Overrides
         {
             return Singleton<PluginManager>.instance.GetPluginsInfo().Where((PluginManager.PluginInfo pi) =>
                 pi.assemblyCount > 0
-                && pi.isEnabled
                 && pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Where(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager") != null).Count() > 0
              ).SelectMany(pi => pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Select(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager"))).ToList();
         }
@@ -68,16 +67,12 @@ namespace Klyte.ElectricRoads.Overrides
             AddRedirect(src3, null, null, trp3);
             PluginManager.instance.eventPluginsStateChanged += RecheckMods;
 
+            ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.RegularGame;
 
 
             lastAssemblyDebugString = GenerateAssembliesDebugString();
-            if (Get81TilesFakeManagerTypes().Count > 0)
-            {
-                LogUtils.DoWarnLog("Loading default hooks stopped because the 81 tiles mod is active");
-                return;
 
-            }
             LogUtils.DoWarnLog("Loading default hooks");
 
             MethodInfo src = typeof(ElectricityManager).GetMethod("SimulationStepImpl", RedirectorUtils.allFlags);
@@ -90,6 +85,25 @@ namespace Klyte.ElectricRoads.Overrides
             AddRedirect(src2, null, null, trp2);
             GetHarmonyInstance();
             ElectricRoadsMod.m_currentPatched |= ElectricRoadsMod.PatchFlags.RegularGame;
+
+            List<Type> targetTypes = ElectricRoadsOverrides.Get81TilesFakeManagerTypes();
+
+            foreach (Type fakeElMan in targetTypes)
+            {
+                src = fakeElMan.GetMethod("SimulationStepImpl", RedirectorUtils.allFlags);
+                trp = GetType().GetMethod("TranspileSimulation", RedirectorUtils.allFlags);
+                src2 = fakeElMan.GetMethod("ConductToNode", RedirectorUtils.allFlags);
+                trp2 = GetType().GetMethod("TranspileConduction", RedirectorUtils.allFlags);
+                LogUtils.DoLog($"TRANSPILE Electric ROADS NODES: {src} => {trp}");
+                AddRedirect(src, null, null, trp);
+                LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
+                AddRedirect(src2, null, null, trp2);
+                ElectricRoadsMod.m_currentPatched |= ElectricRoadsMod.PatchFlags.Mod81TilesGame;
+            }
+            GetHarmonyInstance();
+
+
+
         }
 
         private static void RecheckMods()
@@ -135,27 +149,103 @@ namespace Klyte.ElectricRoads.Overrides
         }
 
 
-        private static IEnumerable<CodeInstruction> TranspileSimulation(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(67, instr);
+        private static IEnumerable<CodeInstruction> TranspileSimulation(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(instr);
 
-        private static IEnumerable<CodeInstruction> TranspileConduction(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(20, instr);
-        private static IEnumerable<CodeInstruction> DetourToCheckElectricConductibility(int offset, IEnumerable<CodeInstruction> instr)
+        private static IEnumerable<CodeInstruction> TranspileConduction(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(instr);
+
+        private static FieldInfo m_serviceField = typeof(ItemClass).GetField("m_service");
+        private static FieldInfo m_classField = typeof(NetInfo).GetField("m_class");
+
+        private static OpCode[] localCodesLd = new OpCode[]
+        {
+            OpCodes.Ldloc_0,
+            OpCodes.Ldloc_1,
+            OpCodes.Ldloc_2,
+            OpCodes.Ldloc_3,
+            OpCodes.Ldloc_S,
+            OpCodes.Ldloc
+        };
+
+        private static OpCode[] localCodesSt = new OpCode[]
+        {
+            OpCodes.Stloc_0,
+            OpCodes.Stloc_1,
+            OpCodes.Stloc_2,
+            OpCodes.Stloc_3,
+            OpCodes.Stloc_S,
+            OpCodes.Stloc
+        };
+        private static IEnumerable<CodeInstruction> DetourToCheckElectricConductibility(IEnumerable<CodeInstruction> instr)
         {
             var instrList = instr.ToList();
-            int i = offset + 1;
-            while (instrList[i].opcode != OpCodes.Bne_Un)
+            for (int i = 2; i < instrList.Count - 2; i++)
             {
-                instrList.RemoveAt(i);
+
+                if (instrList[i - 1].operand == m_classField
+                    && instrList[i - 1].opcode == OpCodes.Ldfld
+                    && instrList[i].operand == m_serviceField
+                    && instrList[i].opcode == OpCodes.Ldfld)
+                {
+
+                    LogUtils.DoLog($"instrList[{i} + 1].operand - {instrList[i + 1].operand} ({instrList[i + 1].operand?.GetType()}) {instrList[i + 1].operand is IConvertible }");
+                    LogUtils.DoLog($"tst == 10 = {(instrList[i + 1].operand is IConvertible x ? x.ToInt32(null) == 10 : false)}");
+                    LogUtils.DoLog($"instrList[{i} + 1].opcode - {instrList[i + 1].opcode} ({instrList[i + 1].opcode == OpCodes.Ldc_I4_S})");
+                    LogUtils.DoLog($"instrList[{i} + 2].opcode - {instrList[i + 2].opcode} ({instrList[i + 2].opcode == OpCodes.Bne_Un || instrList[i + 2].opcode == OpCodes.Bne_Un_S})");
+                    if (instrList[i + 1].operand is IConvertible val
+                    && val.ToInt32(null) == 10
+                    && instrList[i + 1].opcode == OpCodes.Ldc_I4_S
+                    && (instrList[i + 2].opcode == OpCodes.Bne_Un || instrList[i + 2].opcode == OpCodes.Bne_Un_S))
+                    {
+                        instrList[i + 1] = new CodeInstruction(OpCodes.Call, typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"));
+                        instrList[i + 2].opcode = OpCodes.Brfalse;
+
+                        instrList.RemoveAt(i);
+                        instrList.RemoveAt(i - 1);
+
+                        if (localCodesLd.Contains(instrList[i - 2].opcode))
+                        {
+                            object operToSeek = instrList[i - 2].operand;
+                            instrList.RemoveAt(i - 2);
+                            for (int j = i - 3; j > 0; j--)
+                            {
+                                if (localCodesSt.Contains(instrList[j].opcode) && instrList[j].operand == operToSeek)
+                                {
+                                    instrList.RemoveAt(j);
+                                    instrList.RemoveAt(j - 1);
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            instrList.RemoveAt(i - 2);
+                        }
+
+                        LogUtils.DoLog($"Detour applied at {i} - {Environment.StackTrace}");
+                    }
+                }
             }
 
-            instrList[i].opcode = OpCodes.Brfalse;
-            instrList.InsertRange(i, new List<CodeInstruction>
-            {
-                new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
-            });
-            LogUtils.DoLog($"{ instrList[i - 1]}\n{ instrList[i]}\n{ instrList[i + 1]}\n");
+
+
+
+            //int i = offset + 1;
+            //while (instrList[i].opcode != OpCodes.Bne_Un)
+            //{
+            //    instrList.RemoveAt(i);
+            //}
+
+            //instrList[i].opcode = OpCodes.Brfalse;
+            //instrList.InsertRange(i, new List<CodeInstruction>
+            //{
+            //    new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
+            //});
+            //LogUtils.DoLog($"{ instrList[i - 1]}\n{ instrList[i]}\n{ instrList[i + 1]}\n");
             LogUtils.PrintMethodIL(instrList);
             return instrList;
         }
+
+
         private static IEnumerable<CodeInstruction> DetourToCheckTransition(IEnumerable<CodeInstruction> instr)
         {
             var instrList = instr.ToList();
