@@ -1,18 +1,2 @@
-﻿<color #ffff00>Patch 2.0.0 r18</color>
-	- Added Network Skins 2 compatibility fix.
-
-<color #888888>ERv2.0
-	- New UI, now with more information about the assets affected by turning on/off each type of network
-	- NOTICE: The old configuration was lost, but now you will be able to save the configuration per city independently, and also create a default configuration for new ones in <sprite K45_K45Button> Menu 
-	- Fixed 81 tiles mod detection
-	- Added info about patching in pause menu.
-	- Fixed load order of mods that was preventing 81 tiles patch to work properly.
-	- Added a special popup showing the patching status of this mod. Enable the Debug Mode to see it always on game loading and be sure the correct patch was applied. It also contains instructions about how to send the logs for checking bugs. Take a look there!
-	NOTE: That popup can also be found by clicking "Details" button on mod options at pause/options menu 
-	- Added option to reset the <sprite K45_K45Button> button position.
-	- Fixed the PopUp not being displayed right after activating the mod.
-	- Added an option to not show the mod options ingame, it won't even load so you can configure a default file once and then get rid of <sprite K45_K45Button> button after! (valid if there's no other mod that requires that button to exists)
-	- Fixed: Object instance not set error fixed. Thanks <color #888800>Jay</color> for reporting the error and sending the log!
-	- Added general fixes from Custom Zone Mixer
-	- Changed some mod patching method: now both patches can be done at same time.
-</color>
+﻿<color #AA44FF>ERv2.1</color>
+	- Now, roads without electricty won't turn on the lights!

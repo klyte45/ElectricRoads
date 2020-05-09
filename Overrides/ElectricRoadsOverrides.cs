@@ -67,6 +67,10 @@ namespace Klyte.ElectricRoads.Overrides
             AddRedirect(src3, null, null, trp3);
             PluginManager.instance.eventPluginsStateChanged += RecheckMods;
 
+            AddRedirect(typeof(PropInstance).GetMethod("RenderInstance", RedirectorUtils.allFlags, null, new Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(Vector3), typeof(float), typeof(float), typeof(Color), typeof(Vector4), typeof(bool), typeof(Texture), typeof(Vector4), typeof(Vector4), typeof(Texture), typeof(Vector4), typeof(Vector4) }, null), null, null, GetType().GetMethod("LightsOnCheckDetour", RedirectorUtils.allFlags));
+            AddRedirect(typeof(PropInstance).GetMethod("RenderInstance", RedirectorUtils.allFlags, null, new Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(Vector3), typeof(float), typeof(float), typeof(Color), typeof(Vector4), typeof(bool) }, null), null, null, GetType().GetMethod("LightsOnCheckDetour", RedirectorUtils.allFlags));
+            AddRedirect(typeof(LightEffect).GetMethod("PopulateGroupData", RedirectorUtils.allFlags), GetType().GetMethod("CheckElectrityNetForLight", RedirectorUtils.allFlags));
+          
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.RegularGame;
 
@@ -79,10 +83,15 @@ namespace Klyte.ElectricRoads.Overrides
             MethodInfo trp = GetType().GetMethod("TranspileSimulation", RedirectorUtils.allFlags);
             MethodInfo src2 = typeof(ElectricityManager).GetMethod("ConductToNode", RedirectorUtils.allFlags);
             MethodInfo trp2 = GetType().GetMethod("TranspileConduction", RedirectorUtils.allFlags);
+            MethodInfo src4 = typeof(ElectricityManager).GetMethod("UpdateNodeElectricity", RedirectorUtils.allFlags);
+            MethodInfo pre4 = GetType().GetMethod("PreConduct", RedirectorUtils.allFlags);
+            MethodInfo pos4 = GetType().GetMethod("PostConduct", RedirectorUtils.allFlags);
             LogUtils.DoLog($"TRANSPILE Electric ROADS NODES: {src} => {trp}");
             AddRedirect(src, null, null, trp);
             LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
             AddRedirect(src2, null, null, trp2);
+            LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS CHANGED: {src4} => {pre4} & {pos4}");
+            AddRedirect(src4, pre4, pos4);
             GetHarmonyInstance();
             ElectricRoadsMod.m_currentPatched |= ElectricRoadsMod.PatchFlags.RegularGame;
 
@@ -91,13 +100,14 @@ namespace Klyte.ElectricRoads.Overrides
             foreach (Type fakeElMan in targetTypes)
             {
                 src = fakeElMan.GetMethod("SimulationStepImpl", RedirectorUtils.allFlags);
-                trp = GetType().GetMethod("TranspileSimulation", RedirectorUtils.allFlags);
                 src2 = fakeElMan.GetMethod("ConductToNode", RedirectorUtils.allFlags);
-                trp2 = GetType().GetMethod("TranspileConduction", RedirectorUtils.allFlags);
+                src4 = fakeElMan.GetMethod("UpdateNodeElectricity", RedirectorUtils.allFlags);
                 LogUtils.DoLog($"TRANSPILE Electric ROADS NODES: {src} => {trp}");
                 AddRedirect(src, null, null, trp);
                 LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS: {src2} => {trp2}");
                 AddRedirect(src2, null, null, trp2);
+                LogUtils.DoLog($"TRANSPILE Electric ROADS SEGMENTS CHANGED: {src4} => {pre4} & {pos4}");
+                AddRedirect(src4, pre4, pos4);
                 ElectricRoadsMod.m_currentPatched |= ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             }
             GetHarmonyInstance();
@@ -137,8 +147,23 @@ namespace Klyte.ElectricRoads.Overrides
                 node.m_flags &= ~NetNode.Flags.Electricity;
             }
 
+
             return conducts;
         }
+
+        public static void PreConduct(ref int nodeID, ref bool __state) => __state = (NetManager.instance.m_nodes.m_buffer[nodeID].m_flags & NetNode.Flags.Electricity) != 0;
+        public static void PostConduct(int nodeID, bool __state)
+        {
+            if (__state != ((NetManager.instance.m_nodes.m_buffer[nodeID].m_flags & NetNode.Flags.Electricity) != 0))
+            {
+                ref NetNode node = ref NetManager.instance.m_nodes.m_buffer[nodeID];
+                for (int i = 0; i < 8; i++)
+                {
+                    NetManager.instance.UpdateSegmentRenderer(node.GetSegment(i), true);
+                }
+            }
+        }
+
 
 
 
@@ -153,10 +178,10 @@ namespace Klyte.ElectricRoads.Overrides
 
         private static IEnumerable<CodeInstruction> TranspileConduction(IEnumerable<CodeInstruction> instr, ILGenerator generator, MethodBase method) => DetourToCheckElectricConductibility(instr);
 
-        private static FieldInfo m_serviceField = typeof(ItemClass).GetField("m_service");
-        private static FieldInfo m_classField = typeof(NetInfo).GetField("m_class");
+        private static readonly FieldInfo m_serviceField = typeof(ItemClass).GetField("m_service");
+        private static readonly FieldInfo m_classField = typeof(NetInfo).GetField("m_class");
 
-        private static OpCode[] localCodesLd = new OpCode[]
+        private static OpCode[] m_localCodesLd = new OpCode[]
         {
             OpCodes.Ldloc_0,
             OpCodes.Ldloc_1,
@@ -166,7 +191,7 @@ namespace Klyte.ElectricRoads.Overrides
             OpCodes.Ldloc
         };
 
-        private static OpCode[] localCodesSt = new OpCode[]
+        private static OpCode[] m_localCodesSt = new OpCode[]
         {
             OpCodes.Stloc_0,
             OpCodes.Stloc_1,
@@ -202,13 +227,13 @@ namespace Klyte.ElectricRoads.Overrides
                         instrList.RemoveAt(i);
                         instrList.RemoveAt(i - 1);
 
-                        if (localCodesLd.Contains(instrList[i - 2].opcode))
+                        if (m_localCodesLd.Contains(instrList[i - 2].opcode))
                         {
                             object operToSeek = instrList[i - 2].operand;
                             instrList.RemoveAt(i - 2);
                             for (int j = i - 3; j > 0; j--)
                             {
-                                if (localCodesSt.Contains(instrList[j].opcode) && instrList[j].operand == operToSeek)
+                                if (m_localCodesSt.Contains(instrList[j].opcode) && instrList[j].operand == operToSeek)
                                 {
                                     instrList.RemoveAt(j);
                                     instrList.RemoveAt(j - 1);
@@ -225,28 +250,12 @@ namespace Klyte.ElectricRoads.Overrides
                     }
                 }
             }
-
-
-
-
-            //int i = offset + 1;
-            //while (instrList[i].opcode != OpCodes.Bne_Un)
-            //{
-            //    instrList.RemoveAt(i);
-            //}
-
-            //instrList[i].opcode = OpCodes.Brfalse;
-            //instrList.InsertRange(i, new List<CodeInstruction>
-            //{
-            //    new CodeInstruction(OpCodes.Call,typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"))
-            //});
-            //LogUtils.DoLog($"{ instrList[i - 1]}\n{ instrList[i]}\n{ instrList[i + 1]}\n");
             LogUtils.PrintMethodIL(instrList);
             return instrList;
         }
 
 
-        private static IEnumerable<CodeInstruction> DetourToCheckTransition(IEnumerable<CodeInstruction> instr)
+        public static IEnumerable<CodeInstruction> DetourToCheckTransition(IEnumerable<CodeInstruction> instr)
         {
             var instrList = instr.ToList();
             int i = 14;
@@ -262,6 +271,58 @@ namespace Klyte.ElectricRoads.Overrides
             LogUtils.PrintMethodIL(instrList);
             return instrList;
         }
+
+        public static IEnumerable<CodeInstruction> LightsOnCheckDetour(IEnumerable<CodeInstruction> instr, ILGenerator il)
+        {
+
+            var instrList = instr.ToList();
+            for (int i = 0; i < instrList.Count - 3; i++)
+            {
+                if (
+                    instrList[i].opcode == OpCodes.Ldc_R4
+                    && instrList[i + 1].opcode == OpCodes.Stloc_S
+                    && instrList[i + 2].opcode == OpCodes.Ldarg_S
+                )
+                {
+                    Label target = il.DefineLabel();
+                    instrList.InsertRange(i, new CodeInstruction[]{
+                        new CodeInstruction(OpCodes.Ldarg, 2),
+                        new CodeInstruction(OpCodes.Call,  typeof(ElectricRoadsOverrides).GetMethod("CheckElectrityNetForLight", RedirectorUtils.allFlags)),
+                        new CodeInstruction(OpCodes.Brfalse, target),
+                    });
+                    for (; i < instrList.Count - 3; i++)
+                    {
+                        if (
+                      instrList[i].opcode == OpCodes.Ldarga_S
+                      && instrList[i + 1].opcode == OpCodes.Ldc_R4
+                  )
+                        {
+                            instrList[i].labels.Add(target);
+                            break;
+                        }
+                    }
+                }
+            }
+            LogUtils.PrintMethodIL(instrList);
+            return instrList;
+        }
+
+        public static bool CheckElectrityNetForLight(InstanceID id)
+        {
+            if (id.NetSegment == 0)
+            {
+                return true;
+            }
+            NetManager instance = NetManager.instance;
+            ref NetSegment segment = ref instance.m_segments.m_buffer[id.NetSegment];
+            if (!ClassesData.Instance.GetConductibility(segment.Info.m_class))
+            {
+                return true;
+            }
+
+            return (instance.m_nodes.m_buffer[segment.m_startNode].m_flags & NetNode.Flags.Electricity) != 0 && (instance.m_nodes.m_buffer[segment.m_endNode].m_flags & NetNode.Flags.Electricity) != 0;
+        }
+
 
     }
 
