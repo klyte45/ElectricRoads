@@ -1,2 +1,4 @@
 ﻿<color #AA44FF>ERv2.1</color>
 	- Now, roads without electricty won't turn on the lights!
+	
+<color yellow>r1 (17/MAY/21):</color> Fixing garbled text issues when loading the city.
