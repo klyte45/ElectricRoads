@@ -33,13 +33,10 @@ namespace Klyte.ElectricRoads.Overrides
 
         private static readonly PowerLineAI defPLAI = new PowerLineAI();
 
-        public static List<Type> Get81TilesFakeManagerTypes()
-        {
-            return Singleton<PluginManager>.instance.GetPluginsInfo().Where((PluginManager.PluginInfo pi) =>
-                pi.assemblyCount > 0
-                && pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Where(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager") != null).Count() > 0
+        public static List<Type> Get81TilesFakeManagerTypes() => Singleton<PluginManager>.instance.GetPluginsInfo().Where((PluginManager.PluginInfo pi) =>
+                                                                               pi.assemblyCount > 0
+                                                                               && pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Where(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager") != null).Count() > 0
              ).SelectMany(pi => pi.GetAssemblies().Where(x => "EightyOne" == x.GetName().Name).Select(x => x.GetType("EightyOne.ResourceManagers.FakeElectricityManager"))).ToList();
-        }
 
         private static string lastAssemblyDebugString = "";
 
@@ -70,7 +67,7 @@ namespace Klyte.ElectricRoads.Overrides
             AddRedirect(typeof(PropInstance).GetMethod("RenderInstance", RedirectorUtils.allFlags, null, new Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(Vector3), typeof(float), typeof(float), typeof(Color), typeof(Vector4), typeof(bool), typeof(Texture), typeof(Vector4), typeof(Vector4), typeof(Texture), typeof(Vector4), typeof(Vector4) }, null), null, null, GetType().GetMethod("LightsOnCheckDetour", RedirectorUtils.allFlags));
             AddRedirect(typeof(PropInstance).GetMethod("RenderInstance", RedirectorUtils.allFlags, null, new Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(Vector3), typeof(float), typeof(float), typeof(Color), typeof(Vector4), typeof(bool) }, null), null, null, GetType().GetMethod("LightsOnCheckDetour", RedirectorUtils.allFlags));
             AddRedirect(typeof(LightEffect).GetMethod("PopulateGroupData", RedirectorUtils.allFlags), GetType().GetMethod("CheckElectrityNetForLight", RedirectorUtils.allFlags));
-          
+
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.Mod81TilesGame;
             ElectricRoadsMod.m_currentPatched &= ~ElectricRoadsMod.PatchFlags.RegularGame;
 
@@ -202,6 +199,7 @@ namespace Klyte.ElectricRoads.Overrides
         };
         private static IEnumerable<CodeInstruction> DetourToCheckElectricConductibility(IEnumerable<CodeInstruction> instr)
         {
+            bool transpiled = false;
             var instrList = instr.ToList();
             for (int i = 2; i < instrList.Count - 2; i++)
             {
@@ -215,15 +213,15 @@ namespace Klyte.ElectricRoads.Overrides
                     LogUtils.DoLog($"instrList[{i} + 1].operand - {instrList[i + 1].operand} ({instrList[i + 1].operand?.GetType()}) {instrList[i + 1].operand is IConvertible }");
                     LogUtils.DoLog($"tst == 10 = {(instrList[i + 1].operand is IConvertible x ? x.ToInt32(null) == 10 : false)}");
                     LogUtils.DoLog($"instrList[{i} + 1].opcode - {instrList[i + 1].opcode} ({instrList[i + 1].opcode == OpCodes.Ldc_I4_S})");
-                    LogUtils.DoLog($"instrList[{i} + 2].opcode - {instrList[i + 2].opcode} ({instrList[i + 2].opcode == OpCodes.Bne_Un || instrList[i + 2].opcode == OpCodes.Bne_Un_S})");
                     if (instrList[i + 1].operand is IConvertible val
                     && val.ToInt32(null) == 10
-                    && instrList[i + 1].opcode == OpCodes.Ldc_I4_S
-                    && (instrList[i + 2].opcode == OpCodes.Bne_Un || instrList[i + 2].opcode == OpCodes.Bne_Un_S))
+                    && instrList[i + 1].opcode == OpCodes.Ldc_I4_S)
                     {
                         instrList[i + 1] = new CodeInstruction(OpCodes.Call, typeof(ElectricRoadsOverrides).GetMethod("CheckElectricConductibility"));
-                        instrList[i + 2].opcode = OpCodes.Brfalse;
-
+                        while (i + 2 < instrList.Count && instrList[i + 2].opcode != OpCodes.Brfalse)
+                        {
+                            instrList.RemoveAt(i + 2);
+                        }
                         instrList.RemoveAt(i);
                         instrList.RemoveAt(i - 1);
 
@@ -247,10 +245,15 @@ namespace Klyte.ElectricRoads.Overrides
                         }
 
                         LogUtils.DoLog($"Detour applied at {i} - {Environment.StackTrace}");
+                        transpiled = true;
                     }
                 }
             }
             LogUtils.PrintMethodIL(instrList);
+            if (!transpiled)
+            {
+                throw new Exception("Transpilation failed!");
+            }
             return instrList;
         }
 

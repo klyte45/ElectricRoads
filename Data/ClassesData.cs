@@ -73,9 +73,7 @@ namespace Klyte.ElectricRoads.Data
 
         public void SetConductibility(ItemClass clazz, bool value) => SafeSet(clazz.name, value);
 
-        private static bool GetDefaultValueFor(ItemClass m_class)
-        {
-            return m_class.m_service == ItemClass.Service.Electricity
+        private static bool GetDefaultValueFor(ItemClass m_class) => m_class.m_service == ItemClass.Service.Electricity
                 || m_class.m_service == ItemClass.Service.Road
                 || m_class.m_service == ItemClass.Service.Beautification
                 || (m_class.m_service == ItemClass.Service.PublicTransport
@@ -83,9 +81,9 @@ namespace Klyte.ElectricRoads.Data
                         || m_class.m_subService == ItemClass.SubService.PublicTransportTram
                         || m_class.m_subService == ItemClass.SubService.PublicTransportMonorail
                         || m_class.m_subService == ItemClass.SubService.PublicTransportMetro
-                        || m_class.m_subService == ItemClass.SubService.PublicTransportPlane)
+                        || m_class.m_subService == ItemClass.SubService.PublicTransportPlane
+                        || m_class.m_subService == ItemClass.SubService.PublicTransportConcourse)
                     && (m_class.m_layer == ItemClass.Layer.Default || m_class.m_layer == ItemClass.Layer.MetroTunnels));
-        }
         public override string SaveId => "K45_ER_ClassesData";
 
         public event Action eventAllChanged;
