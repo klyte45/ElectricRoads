@@ -1,6 +1,6 @@
 ﻿using ColossalFramework.Globalization;
 using ColossalFramework.UI;
-using Klyte.Commons.Extensors;
+using Klyte.Commons.Extensions;
 using Klyte.Commons.Interfaces;
 using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
@@ -13,7 +13,7 @@ using UnityEngine;
 namespace Klyte.ElectricRoads
 {
 
-    public class ERPanel : BasicKPanel<ElectricRoadsMod,ElectricRoadsController,ERPanel>
+    public class ERPanel : BasicKPanel<ElectricRoadsMod, ElectricRoadsController, ERPanel>
     {
         private Dictionary<ItemClass, List<NetInfo>> m_allClasses;
 
@@ -25,7 +25,7 @@ namespace Klyte.ElectricRoads
         protected override void AwakeActions()
         {
             CreateTopButton(MainPanel, "ExportAsDefault", "K45_ER_EXPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Save.ToString(), new Vector2(10, 50), (x, y) => ClassesData.Instance.SaveAsDefault());
-            CreateTopButton(MainPanel, "ImportDefault", "K45_ER_IMPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Load.ToString(), new Vector2(95, 50), (x, y) => ClassesData.Instance.LoadDefaults());
+            CreateTopButton(MainPanel, "ImportDefault", "K45_ER_IMPORT_DEFAULT_BTN", CommonsSpriteNames.K45_Load.ToString(), new Vector2(95, 50), (x, y) => ClassesData.Instance.LoadDefaults(null));
             CreateTopButton(MainPanel, "SelectAll", "K45_ER_SELECT_ALL_BTN", "check-checked", new Vector2(180, 50), (x, y) => ClassesData.Instance.SelectAll());
             CreateTopButton(MainPanel, "SelectNone", "K45_ER_SELECT_NONE_BTN", "check-unchecked", new Vector2(265, 50), (x, y) => ClassesData.Instance.UnselectAll());
             CreateTopButton(MainPanel, "Reset", "K45_ER_RESET_BTN", CommonsSpriteNames.K45_Reload.ToString(), new Vector2(350, 50), (x, y) => ClassesData.Instance.SafeCleanAll(m_allClasses.Keys));

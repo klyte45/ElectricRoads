@@ -1,4 +1,5 @@
 ﻿using ColossalFramework.Globalization;
+using ICities;
 using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
 using System;
@@ -11,7 +12,7 @@ namespace Klyte.ElectricRoads.Data
 
     public class ClassesData : ExtensionInterfaceDictionaryStructValSimplImpl<ClassesData, string, bool>
     {
-        public override void LoadDefaults()
+        public override void LoadDefaults(ISerializableData serializableData)
         {
             if (File.Exists(ElectricRoadsController.DEFAULT_CONFIG_FILE))
             {
