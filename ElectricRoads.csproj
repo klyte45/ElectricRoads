@@ -123,7 +123,7 @@
     <Compile Include="UI\**\*.cs" />
     <Compile Include="WorldInfoPanel\**\*.cs" /> 
     <Compile Include="ER*.cs" />
-    <Compile Include="ElectricRoads*.cs" />
+    <Compile Include="ElectricRoads*.cs"/>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonProperties.cs" />
@@ -178,6 +178,12 @@
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>S:\Steam\SteamApps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>   
+	<Reference Include="UnifiedUILib">
+      <HintPath>S:\Steam\steamapps\workshop\content\255710\2255219025\UnifiedUILib.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <Aliases>UUI</Aliases>
     </Reference>
   </ItemGroup>
   <ItemGroup>
