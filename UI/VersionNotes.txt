@@ -1,3 +1,6 @@
 ﻿<color #AA44FF>ERv2.1.1</color>
 	- Fixes for version 1.14 of the game
 	- Added support to UUI
+	
+<color yellow>r1 (09/FEB/22)</color>: Fixed ER panel when using UUI
+<color yellow>r2 (09/JUN/22)</color>: Fixes for UUI and zipping files on unix system issues

@@ -19,7 +19,7 @@ namespace Klyte.ElectricRoads
 
         public override float PanelWidth => 400;
 
-        public override float PanelHeight => m_controlContainer.parent.height;
+        public override float PanelHeight => 550;
 
         #region Awake
         protected override void AwakeActions()
